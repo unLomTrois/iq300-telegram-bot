@@ -1,3 +1,10 @@
 import { bot } from './bot.js';
+import { db } from './db.js'
 
-bot.launch();
+(async () => {
+  await db.sync();
+
+  bot.launch();
+
+})()
+

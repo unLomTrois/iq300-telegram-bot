@@ -4,7 +4,6 @@ import fetch from "node-fetch";
 import { validate as isEmail } from "email-validator";
 
 import {
-  db,
   AuthTokenEmail,
   WaitForEmail,
   WaitForPassword,
@@ -24,7 +23,6 @@ const start_help_text =
 bot.use(async (_, next) => {
   const start = new Date().getTime();
 
-  await db.sync();
   await next();
 
   const ms = new Date().getTime() - start;
@@ -55,7 +53,7 @@ bot.hears("Уведомления", async (ctx) => {
   }
 
   const data = await fetch(
-    "https://app.iq300.ru/api/v2/notifications/counters",
+    "https://app.iq300.ru/api/v2/notifications?unread=true",
     {
       method: "GET",
       headers: {
@@ -64,11 +62,7 @@ bot.hears("Уведомления", async (ctx) => {
     }
   ).then((res) => res.json());
 
-  ctx.reply(
-    `У Вас ${
-      data.notification_counters.not_pinned_unread + 1
-    } новых уведомлений`
-  );
+  ctx.reply(`У Вас ${data.notifications.length} новых уведомлений`);
   setTimeout(() => {
     ctx.reply(
       "Показать?",
@@ -77,10 +71,6 @@ bot.hears("Уведомления", async (ctx) => {
       }).resize()
     );
   }, 100);
-
-  // data.notifications.forEach(note => {
-  //   ctx.reply(`${note.user.short_name} ${note.main_text} ${note.notificable.title}`)
-  // });
 });
 
 bot.hears("Отмена", (ctx) => {
@@ -108,11 +98,50 @@ bot.hears("Показать", async (ctx) => {
   ).then((res) => res.json());
 
   data.notifications.forEach((note) => {
+    console.log(note.user)
     ctx.reply(
-      `${note.user.short_name} ${note.main_text} ${note.notificable.title}`,
-      Markup.removeKeyboard()
+      `<a href="https://app.iq300.ru/users/${note.user.id}">${note.user.short_name}</a> <a href="https://app.iq300.ru/notifications/${note.id}">${note.main_text} ${note.notificable.title}</a>`,
+      {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          Markup.button.callback(
+            "Отметить прочитанным ✅",
+            `Прочитать уведомление ${note.id}`
+          ),
+        ]).resize(),
+      }
     );
   });
+  setTimeout(() => {
+    ctx.reply(
+      "Хотите отметить всё прочитанным?",
+      Markup.keyboard(["Отметить", "Отмена"], {
+        columns: 2,
+      }).resize()
+    );
+  }, 200);
+});
+
+bot.action(/Прочитать уведомление (\d+)/, async (ctx) => {
+  const access_token = await AccessToken.findByPk(ctx.from.id);
+
+  const data = await fetch("https://app.iq300.ru/api/v2/notifications/read", {
+    method: "PUT",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${access_token.value}`,
+    },
+    body: JSON.stringify({
+      notification_ids: [parseInt(ctx.match[1])],
+    }),
+  });
+
+  if (data.ok) {
+    ctx.editMessageText(`✅ <s>${ctx.callbackQuery.message.text}</s>`, {
+      parse_mode: "HTML",
+    });
+  }
 });
 
 bot.on("text", async (ctx) => {
@@ -124,6 +153,7 @@ bot.on("text", async (ctx) => {
   const wait_for_email = await WaitForEmail.findByPk(ctx.from.id);
   const wait_for_password = await WaitForPassword.findByPk(ctx.from.id);
 
+  // ожидание ввода почты
   if (
     !has_access_token &&
     wait_for_email !== null &&
@@ -142,6 +172,7 @@ bot.on("text", async (ctx) => {
     ctx.reply("Введите пароль");
   }
 
+  // ожидание ввода пароля
   if (
     !has_access_token &&
     wait_for_password !== null &&
@@ -177,5 +208,9 @@ bot.on("text", async (ctx) => {
     }
   }
 });
+
+bot.catch((err) => {
+  console.error(err)
+})
 
 export { bot };
