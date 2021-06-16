@@ -3,6 +3,8 @@ import { Telegraf, Markup } from "telegraf";
 import fetch from "node-fetch";
 import { validate as isEmail } from "email-validator";
 
+import { showMenu } from "./utils.js";
+
 import {
   AuthTokenEmail,
   WaitForEmail,
@@ -42,7 +44,7 @@ bot.hears("Войти", (ctx) => {
   ctx.reply("Введите почту", Markup.removeKeyboard());
 });
 
-bot.hears("Уведомления", async (ctx) => {
+bot.hears("🔔 Уведомления", async (ctx) => {
   const access_token = await AccessToken.findByPk(ctx.from.id);
 
   if (access_token === null) {
@@ -52,7 +54,7 @@ bot.hears("Уведомления", async (ctx) => {
     );
   }
 
-  const data = await fetch(
+  const { notifications } = await fetch(
     "https://app.iq300.ru/api/v2/notifications?unread=true",
     {
       method: "GET",
@@ -62,23 +64,98 @@ bot.hears("Уведомления", async (ctx) => {
     }
   ).then((res) => res.json());
 
-  ctx.reply(`У Вас ${data.notifications.length} новых уведомлений`);
-  setTimeout(() => {
-    ctx.reply(
+  if (notifications.length > 0) {
+    await ctx.reply(
+      `У Вас ${notifications.length} новых уведомлений`,
+      Markup.removeKeyboard()
+    );
+    await ctx.reply(
       "Показать?",
-      Markup.keyboard(["Показать", "Отмена"], {
-        columns: 2,
-      }).resize()
+      Markup.inlineKeyboard(
+        [
+          Markup.button.callback("Да", "ПоказатьУведомления"),
+          Markup.button.callback("Отмена", "Меню"),
+        ],
+        {
+          columns: 2,
+        }
+      ).resize()
     );
-  }, 100);
+  } else {
+    await ctx.reply(`Новых уведомлений нет`, Markup.removeKeyboard());
+    await showMenu(ctx);
+  }
 });
 
-bot.hears("Отмена", (ctx) => {
-  ctx.reply("Выберите действие:", Markup.keyboard(["Уведомления"]).resize());
-});
-
-bot.hears("Показать", async (ctx) => {
+bot.hears("👤 Профиль", async (ctx) => {
   const access_token = await AccessToken.findByPk(ctx.from.id);
+
+  if (access_token === null) {
+    ctx.reply(
+      "Сначала войдите в систему",
+      Markup.keyboard(["Войти"]).oneTime().resize()
+    );
+  }
+
+  const { user } = await fetch("https://app.iq300.ru/api/v2/users/current", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${access_token.value}`,
+    },
+  }).then((res) => res.json());
+
+  await ctx.reply("Ваш профиль:");
+  await ctx.replyWithPhoto(
+    { url: user.photo.normal_url },
+    {
+      caption: `${user.short_name}`,
+      ...Markup.inlineKeyboard([
+        Markup.button.callback("Выйти", "ВыйтиИзАккаунта"),
+        Markup.button.callback("Отмена", "Меню"),
+      ]),
+    }
+  );
+});
+
+bot.action("ВыйтиИзАккаунта", async (ctx) => {
+  const access_token = await AccessToken.findByPk(ctx.from.id);
+
+  ctx.editMessageReplyMarkup();
+
+  if (access_token !== null) {
+    await access_token.destroy();
+
+    await ctx.reply(
+      "Вы вышли из аккаунта",
+      Markup.keyboard(["Войти"]).oneTime().resize()
+    );
+  } else {
+    ctx.reply(
+      "Вы уже вышли из профиля",
+      Markup.keyboard(["Войти"]).oneTime().resize()
+    );
+  }
+});
+
+bot.action("Меню", async (ctx) => {
+  const access_token = await AccessToken.findByPk(ctx.from.id);
+  ctx.editMessageReplyMarkup();
+
+  if (access_token !== null) {
+
+    showMenu(ctx);
+  } else {
+    ctx.reply(
+      "Сначала войдите в систему",
+      Markup.keyboard(["Войти"]).oneTime().resize()
+    );
+  }
+});
+
+bot.action("ПоказатьУведомления", async (ctx) => {
+  const access_token = await AccessToken.findByPk(ctx.from.id);
+
+  ctx.editMessageReplyMarkup();
 
   if (access_token === null) {
     ctx.reply(
@@ -97,9 +174,9 @@ bot.hears("Показать", async (ctx) => {
     }
   ).then((res) => res.json());
 
-  data.notifications.forEach((note) => {
-    console.log(note.user)
-    ctx.reply(
+  data.notifications.forEach(async (note) => {
+    console.log(note.user);
+    await ctx.reply(
       `<a href="https://app.iq300.ru/users/${note.user.id}">${note.user.short_name}</a> <a href="https://app.iq300.ru/notifications/${note.id}">${note.main_text} ${note.notificable.title}</a>`,
       {
         parse_mode: "HTML",
@@ -112,14 +189,19 @@ bot.hears("Показать", async (ctx) => {
       }
     );
   });
-  setTimeout(() => {
-    ctx.reply(
-      "Хотите отметить всё прочитанным?",
-      Markup.keyboard(["Отметить", "Отмена"], {
+
+  await ctx.reply(
+    "Хотите отметить всё прочитанным?",
+    Markup.inlineKeyboard(
+      [
+        Markup.button.callback("Да", "ПрочитатьВсеУведомления"),
+        Markup.button.callback("Отмена", "Меню"),
+      ],
+      {
         columns: 2,
-      }).resize()
-    );
-  }, 200);
+      }
+    ).resize()
+  );
 });
 
 bot.action(/Прочитать уведомление (\d+)/, async (ctx) => {
@@ -138,20 +220,56 @@ bot.action(/Прочитать уведомление (\d+)/, async (ctx) => {
   });
 
   if (data.ok) {
+    ctx.editMessageReplyMarkup();
+
     ctx.editMessageText(`✅ <s>${ctx.callbackQuery.message.text}</s>`, {
       parse_mode: "HTML",
     });
   }
 });
 
-bot.on("text", async (ctx) => {
+bot.action("ПрочитатьВсеУведомления", async (ctx) => {
   const access_token = await AccessToken.findByPk(ctx.from.id);
+
+  const { notifications } = await fetch(
+    "https://app.iq300.ru/api/v2/notifications?unread=true",
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${access_token.value}`,
+      },
+    }
+  ).then((res) => res.json());
+
+  const notification_ids = notifications.map((note) => parseInt(note.id));
+  console.log(notification_ids);
+
+  const data = await fetch("https://app.iq300.ru/api/v2/notifications/read", {
+    method: "PUT",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${access_token.value}`,
+    },
+    body: JSON.stringify({
+      notification_ids,
+    }),
+  });
+
+  if (data.ok) {
+    ctx.editMessageReplyMarkup();
+    ctx.reply("Все уведомления прочитаны!");
+  }
+});
+
+bot.on("text", async (ctx) => {
+  const id = ctx.from.id;
+
+  const access_token = await AccessToken.findByPk(id);
   const has_access_token = access_token !== null;
-
-  const auth_token_email = await AuthTokenEmail.findByPk(ctx.from.id);
-
-  const wait_for_email = await WaitForEmail.findByPk(ctx.from.id);
-  const wait_for_password = await WaitForPassword.findByPk(ctx.from.id);
+  const auth_token_email = await AuthTokenEmail.findByPk(id);
+  const wait_for_email = await WaitForEmail.findByPk(id);
+  const wait_for_password = await WaitForPassword.findByPk(id);
 
   // ожидание ввода почты
   if (
@@ -162,12 +280,16 @@ bot.on("text", async (ctx) => {
   ) {
     await wait_for_email.destroy();
 
+    const email = ctx.message.text;
+
+    ctx.deleteMessage(ctx.message.message_id);
+
     AuthTokenEmail.create({
-      id: ctx.from.id,
-      email: ctx.message.text,
+      id,
+      email,
     });
     WaitForPassword.create({
-      id: ctx.from.id,
+      id,
     });
     ctx.reply("Введите пароль");
   }
@@ -179,6 +301,11 @@ bot.on("text", async (ctx) => {
     auth_token_email !== null
   ) {
     await wait_for_password.destroy();
+    await auth_token_email.destroy();
+
+    const password = ctx.message.text;
+
+    ctx.deleteMessage(ctx.message.message_id);
 
     const data = await fetch("https://app.iq300.ru/api/v2/sessions", {
       method: "POST",
@@ -188,29 +315,33 @@ bot.on("text", async (ctx) => {
       },
       body: JSON.stringify({
         email: auth_token_email.email,
-        password: ctx.message.text,
+        password,
       }),
     });
 
-    await auth_token_email.destroy();
-
     if (data.ok) {
-      const kek = await data.json();
+      const { access_token } = await data.json();
 
-      console.log("KEK", kek.access_token);
-
-      AccessToken.create({
-        id: ctx.from.id,
-        value: kek.access_token,
+      await AccessToken.create({
+        id,
+        value: access_token,
       });
 
-      ctx.reply("Готово!", Markup.keyboard(["Уведомления"]).oneTime().resize());
+      await ctx.reply("Готово!\nВы вошли в свой профиль");
+      await showMenu(ctx);
+    } else {
+      await ctx.reply(
+        "Что-то пошло не так. Почта или логин оказались неверными. Перепроверьте и введите данные снова"
+      );
+      WaitForEmail.create({
+        id: ctx.from.id,
+      });
     }
   }
 });
 
 bot.catch((err) => {
-  console.error(err)
-})
+  console.error(err);
+});
 
 export { bot };
