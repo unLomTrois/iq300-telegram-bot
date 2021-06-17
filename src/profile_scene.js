@@ -7,6 +7,8 @@ const profileScene = new Scenes.BaseScene("profile");
 profileScene.enter(async (ctx) => {
   const access_token = ctx.session.access_token;
 
+  console.log(ctx.session)
+
   if (access_token === null) {
     ctx.reply(
       "Сначала войдите в систему",

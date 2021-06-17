@@ -96,6 +96,8 @@ authScene.on("text", async (ctx) => {
       await ctx.reply("Готово!\nВы вошли в свой профиль");
       ctx.session.access_token = access_token.value;
 
+      console.log(ctx.session)
+
       ctx.scene.enter("menu");
     } else {
       await ctx.reply(
