@@ -4,7 +4,9 @@ const menuScene = new Scenes.BaseScene("menu");
 menuScene.enter(async (ctx) => {
   ctx.reply(
     "Выберите действие:",
-    Markup.keyboard(["🔔 Уведомления", "✅ Задачи", "👤 Профиль"]).resize()
+    Markup.keyboard(["🔔 Уведомления", "✅ Задачи", "👤 Профиль"], {
+      columns: 3
+    }).resize()
   );
 });
 
