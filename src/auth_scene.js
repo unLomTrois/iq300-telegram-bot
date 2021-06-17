@@ -31,8 +31,6 @@ authScene.enter(async (ctx) => {
 authScene.on("text", async (ctx) => {
   const id = ctx.from.id;
 
-  console.log("kek");
-
   const access_token = await AccessToken.findByPk(id);
   const has_access_token = access_token !== null;
   const auth_token_email = await AuthTokenEmail.findByPk(id);

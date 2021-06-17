@@ -175,7 +175,6 @@ bot.action("ПоказатьУведомления", async (ctx) => {
   ).then((res) => res.json());
 
   data.notifications.forEach(async (note) => {
-    console.log(note.user);
     await ctx.reply(
       `<a href="https://app.iq300.ru/users/${note.user.id}">${note.user.short_name}</a> <a href="https://app.iq300.ru/notifications/${note.id}">${note.main_text} ${note.notificable.title}</a>`,
       {
@@ -242,7 +241,6 @@ bot.action("ПрочитатьВсеУведомления", async (ctx) => {
   ).then((res) => res.json());
 
   const notification_ids = notifications.map((note) => parseInt(note.id));
-  console.log(notification_ids);
 
   const data = await fetch("https://app.iq300.ru/api/v2/notifications/read", {
     method: "PUT",
