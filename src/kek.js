@@ -15,10 +15,15 @@ if (token === undefined) {
 
 import { AccessToken } from "./db.js";
 
-// Handler factories
-// const { leave } = Scenes.Stage;
-
 const bot = new Telegraf(token);
+
+const start_help_text =
+  "Привет!\n" +
+  "Это бот для интеграции вашего аккаунта в Телеграм и IQ300.\n" +
+  "Для начала пользования ботом, требуется предоставить электронную почту и пароль\n" +
+  "Данный бот не сохраняет электронную почту и пароли, и использует их только для авторизации в системе IQ300.\n" +
+  "Вы можете проверить это, исходный код бота находится в открытом доступе: https://github.com/unLomTrois/iq300-telegram-bot\n" +
+  "Чтобы продолжить, войдите в систему";
 
 const stage = new Scenes.Stage([
   authScene,
@@ -27,11 +32,17 @@ const stage = new Scenes.Stage([
   profileScene,
   tasksScene,
 ]);
+
 bot.use(session());
 bot.use(stage.middleware());
+
 bot.start((ctx) => {
-  ctx.reply("kek", Markup.keyboard(["Войти"]).oneTime().resize());
+  ctx.reply(start_help_text, Markup.keyboard(["Войти"]).oneTime().resize());
 });
+bot.help((ctx) => {
+  ctx.reply(start_help_text);
+})
+
 bot.hears("Войти", (ctx) => {
   ctx.scene.enter("auth");
 });
@@ -49,8 +60,8 @@ bot.on("message", async (ctx) => {
   await db.sync();
 
   bot.launch();
-})();
 
-// Enable graceful stop
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
+  // Enable graceful stop
+  process.once("SIGINT", () => bot.stop("SIGINT"));
+  process.once("SIGTERM", () => bot.stop("SIGTERM"));
+})();
