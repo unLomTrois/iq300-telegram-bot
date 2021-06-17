@@ -14,6 +14,8 @@ profileScene.enter(async (ctx) => {
     );
   }
 
+  console.log("access_token", access_token)
+
   const data = await fetch("https://app.iq300.ru/api/v2/users/current", {
     method: "GET",
     headers: {
