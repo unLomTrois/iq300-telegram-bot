@@ -7,16 +7,12 @@ const profileScene = new Scenes.BaseScene("profile");
 profileScene.enter(async (ctx) => {
   const access_token = ctx.session.access_token;
 
-  console.log(ctx.session)
-
   if (access_token === null) {
     ctx.reply(
       "Сначала войдите в систему",
       Markup.keyboard(["Войти"]).oneTime().resize()
     );
   }
-
-  console.log("access_token", access_token)
 
   const data = await fetch("https://app.iq300.ru/api/v2/users/current", {
     method: "GET",
