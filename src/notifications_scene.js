@@ -2,12 +2,10 @@ import { Scenes, Markup } from "telegraf";
 
 import fetch from "node-fetch";
 
-import { AccessToken } from "./db.js";
-
 const notificationsScene = new Scenes.BaseScene("notifications");
 
 notificationsScene.enter(async (ctx) => {
-  const access_token = await AccessToken.findByPk(ctx.from.id);
+  const access_token = ctx.session.access_token;
 
   if (access_token === null) {
     ctx.reply(
@@ -21,7 +19,7 @@ notificationsScene.enter(async (ctx) => {
     {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${access_token.value}`,
+        Authorization: `Bearer ${access_token}`,
       },
     }
   ).then((res) => res.json());
@@ -50,7 +48,7 @@ notificationsScene.enter(async (ctx) => {
 });
 
 notificationsScene.action("ПоказатьУведомления", async (ctx) => {
-  const access_token = await AccessToken.findByPk(ctx.from.id);
+  const access_token = ctx.session.access_token;
 
   ctx.editMessageReplyMarkup();
 
@@ -66,7 +64,7 @@ notificationsScene.action("ПоказатьУведомления", async (ctx) 
     {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${access_token.value}`,
+        Authorization: `Bearer ${access_token}`,
       },
     }
   ).then((res) => res.json());
@@ -102,14 +100,14 @@ notificationsScene.action("ПоказатьУведомления", async (ctx) 
 });
 
 notificationsScene.action(/Прочитать уведомление (\d+)/, async (ctx) => {
-  const access_token = await AccessToken.findByPk(ctx.from.id);
+  const access_token = ctx.session.access_token;
 
   const data = await fetch("https://app.iq300.ru/api/v2/notifications/read", {
     method: "PUT",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
-      Authorization: `Bearer ${access_token.value}`,
+      Authorization: `Bearer ${access_token}`,
     },
     body: JSON.stringify({
       notification_ids: [parseInt(ctx.match[1])],
@@ -126,14 +124,14 @@ notificationsScene.action(/Прочитать уведомление (\d+)/, asy
 });
 
 notificationsScene.action("ПрочитатьВсеУведомления", async (ctx) => {
-  const access_token = await AccessToken.findByPk(ctx.from.id);
+  const access_token = ctx.session.access_token;
 
   const { notifications } = await fetch(
     "https://app.iq300.ru/api/v2/notifications?unread=true",
     {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${access_token.value}`,
+        Authorization: `Bearer ${access_token}`,
       },
     }
   ).then((res) => res.json());

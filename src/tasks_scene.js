@@ -2,14 +2,12 @@ import { Scenes, Markup } from "telegraf";
 
 import fetch from "node-fetch";
 
-import { AccessToken } from "./db.js";
 import { convertDate, convertEndDate, kind, statusLocale } from "./utils.js";
-
 
 const tasksScene = new Scenes.BaseScene("tasks");
 
 tasksScene.enter(async (ctx) => {
-  const access_token = await AccessToken.findByPk(ctx.from.id);
+  const access_token = ctx.session.access_token;
 
   if (access_token === null) {
     ctx.reply(
@@ -23,7 +21,7 @@ tasksScene.enter(async (ctx) => {
     {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${access_token.value}`,
+        Authorization: `Bearer ${access_token}`,
       },
     }
   ).then((res) => res.json());
@@ -49,7 +47,7 @@ tasksScene.enter(async (ctx) => {
 });
 
 tasksScene.action("ПоказатьЗадачи", async (ctx) => {
-  const access_token = await AccessToken.findByPk(ctx.from.id);
+  const access_token = ctx.session.access_token;
 
   ctx.editMessageReplyMarkup();
 
@@ -65,7 +63,7 @@ tasksScene.action("ПоказатьЗадачи", async (ctx) => {
     {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${access_token.value}`,
+        Authorization: `Bearer ${access_token}`,
       },
     }
   ).then((res) => res.json());
@@ -84,8 +82,8 @@ tasksScene.action("ПоказатьЗадачи", async (ctx) => {
       }
     );
   }
-  
-  ctx.scene.enter("menu")
+
+  ctx.scene.enter("menu");
 });
 
 // tasksScene.leave((ctx) => ctx.reply("exiting notifications scene"));

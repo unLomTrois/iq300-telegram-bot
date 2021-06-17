@@ -5,7 +5,7 @@ menuScene.enter(async (ctx) => {
   ctx.reply(
     "Выберите действие:",
     Markup.keyboard(["🔔 Уведомления", "✅ Задачи", "👤 Профиль"], {
-      columns: 3
+      columns: 3,
     }).resize()
   );
 });

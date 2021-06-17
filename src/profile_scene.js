@@ -2,12 +2,10 @@ import { Scenes, Markup } from "telegraf";
 
 import fetch from "node-fetch";
 
-import { AccessToken } from "./db.js";
-
 const profileScene = new Scenes.BaseScene("profile");
 
 profileScene.enter(async (ctx) => {
-  const access_token = await AccessToken.findByPk(ctx.from.id);
+  const access_token = ctx.session.access_token;
 
   if (access_token === null) {
     ctx.reply(
@@ -19,7 +17,7 @@ profileScene.enter(async (ctx) => {
   const { user } = await fetch("https://app.iq300.ru/api/v2/users/current", {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${access_token.value}`,
+      Authorization: `Bearer ${access_token}`,
     },
   }).then((res) => res.json());
 
@@ -37,7 +35,7 @@ profileScene.enter(async (ctx) => {
 });
 
 profileScene.action("Меню", async (ctx) => {
-  const access_token = await AccessToken.findByPk(ctx.from.id);
+  const access_token = ctx.session.access_token;
   ctx.editMessageReplyMarkup();
 
   if (access_token !== null) {
@@ -49,12 +47,13 @@ profileScene.action("Меню", async (ctx) => {
 });
 
 profileScene.action("ВыйтиИзАккаунта", async (ctx) => {
-  const access_token = await AccessToken.findByPk(ctx.from.id);
+  const access_token = ctx.session.access_token;
 
   ctx.editMessageReplyMarkup();
 
   if (access_token !== null) {
     await access_token.destroy();
+    ctx.session.access_token = undefined;
 
     await ctx.reply(
       "Вы вышли из аккаунта",

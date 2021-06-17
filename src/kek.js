@@ -55,6 +55,10 @@ bot.on("message", async (ctx) => {
   const access_token = await AccessToken.findByPk(ctx.from.id);
 
   if (access_token !== null) {
+    ctx.session.access_token = access_token.value;
+
+    console.log(ctx.session);
+
     ctx.scene.enter("menu");
   } else {
     ctx.scene.enter("auth");

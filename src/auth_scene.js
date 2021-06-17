@@ -23,7 +23,7 @@ authScene.enter(async (ctx) => {
     ctx.reply("Введите почту", Markup.removeKeyboard());
   } else {
     await ctx.reply("Вы уже вошли", Markup.removeKeyboard());
-    ctx.scene.enter("menu")
+    ctx.scene.enter("menu");
   }
 });
 
@@ -31,7 +31,7 @@ authScene.enter(async (ctx) => {
 authScene.on("text", async (ctx) => {
   const id = ctx.from.id;
 
-  console.log("kek")
+  console.log("kek");
 
   const access_token = await AccessToken.findByPk(id);
   const has_access_token = access_token !== null;
@@ -96,7 +96,9 @@ authScene.on("text", async (ctx) => {
       });
 
       await ctx.reply("Готово!\nВы вошли в свой профиль");
-      ctx.scene.enter("menu")
+      ctx.session.access_token = access_token.value;
+
+      ctx.scene.enter("menu");
     } else {
       await ctx.reply(
         "Что-то пошло не так. Почта или логин оказались неверными. Перепроверьте и введите данные снова"
