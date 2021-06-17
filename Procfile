@@ -1,1 +1,1 @@
-worker: yarn start
+worker: node src/new_index.js
