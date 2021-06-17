@@ -41,7 +41,12 @@ bot.start((ctx) => {
 });
 bot.help((ctx) => {
   ctx.reply(start_help_text);
-})
+});
+
+bot.action("Меню", (ctx) => {
+  ctx.editMessageReplyMarkup();
+  ctx.scene.enter("menu");
+});
 
 bot.hears("Войти", (ctx) => {
   ctx.scene.enter("auth");
