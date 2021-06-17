@@ -14,20 +14,18 @@ profileScene.enter(async (ctx) => {
     );
   }
 
-  const data = await fetch("https://app.iq300.ru/api/v2/users/current", {
+  const { user } = await fetch("https://app.iq300.ru/api/v2/users/current", {
     method: "GET",
     headers: {
       Authorization: `Bearer ${access_token}`,
     },
   }).then((res) => res.json());
 
-  console.log("data", data)
-
   await ctx.reply("Ваш профиль:", Markup.removeKeyboard());
   await ctx.replyWithPhoto(
-    { url: data.user.photo.normal_url },
+    { url: user.photo.normal_url },
     {
-      caption: `${data.user.short_name}`,
+      caption: `${user.short_name}`,
       ...Markup.inlineKeyboard([
         Markup.button.callback("Выйти", "ВыйтиИзАккаунта"),
         Markup.button.callback("Отмена", "Меню"),
