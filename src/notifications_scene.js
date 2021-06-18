@@ -96,6 +96,7 @@ notificationsScene.action("ПоказатьУведомления", async (ctx) 
       }
     ).resize()
   );
+  ctx.scene.enter('menu')
 });
 
 notificationsScene.action(/Прочитать уведомление (\d+)/, async (ctx) => {
