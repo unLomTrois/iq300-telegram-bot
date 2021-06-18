@@ -25,6 +25,8 @@
     "js-base64": "^3.2.4",
     "moment": "^2.29.1",
     "node-fetch": "^2.6.1",
+    "pg": "^8.6.0",
+    "pg-hstore": "^2.3.4",
     "sequelize": "^6.6.2",
     "spotify-uri": "^2.0.0",
     "sqlite3": "^5.0.2",
