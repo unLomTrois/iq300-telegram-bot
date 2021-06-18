@@ -1,6 +1,7 @@
 import { Scenes, Markup } from "telegraf";
 
 import fetch from "node-fetch";
+import { AccessToken } from "./db.js";
 
 const profileScene = new Scenes.BaseScene("profile");
 
@@ -47,7 +48,9 @@ profileScene.action("Меню", async (ctx) => {
 });
 
 profileScene.action("ВыйтиИзАккаунта", async (ctx) => {
-  const access_token = ctx.session.access_token;
+  const access_token = await AccessToken.findByPk(ctx.from.id);
+
+  console.error("ВыйтиИзАккаунта", access_token)
 
   ctx.editMessageReplyMarkup();
 
@@ -73,6 +76,6 @@ profileScene.action("ВыйтиИзАккаунта", async (ctx) => {
 //   ctx.reply("amogus")
 // });
 
-// profileScene.leave((ctx) => ctx.reply("exiting profile scene"));
+profileScene.leave((ctx) => ctx.reply("exiting profile scene"));
 
 export { profileScene };

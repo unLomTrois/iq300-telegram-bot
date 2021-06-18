@@ -12,24 +12,29 @@ import {
 
 const authScene = new Scenes.BaseScene("auth");
 authScene.enter(async (ctx) => {
-  const id = parseInt(ctx.from.id);
+  const id = ctx.from.id;
 
   const access_token = await AccessToken.findByPk(id);
 
+  const wait_for_email = await WaitForEmail.findByPk(id);
+
   if (access_token === null) {
-    WaitForEmail.create({
-      id: ctx.from.id,
-    });
-    ctx.reply("Введите почту", Markup.removeKeyboard());
+    if (wait_for_email === null) {
+      WaitForEmail.create({
+        id: ctx.from.id,
+      });
+      await ctx.reply("Введите почту", Markup.removeKeyboard());
+    }
   } else {
     await ctx.reply("Вы уже вошли", Markup.removeKeyboard());
     ctx.scene.enter("menu");
   }
+  await ctx.reply("вышел из эжнтеы")
 });
 
-// authScene.leave((ctx) => ctx.reply("exiting auth scene"));
+authScene.leave((ctx) => ctx.reply("exiting auth scene"));
 authScene.on("text", async (ctx) => {
-  const id = parseInt(ctx.from.id);
+  const id = ctx.from.id;
 
   const access_token = await AccessToken.findByPk(id);
   const has_access_token = access_token !== null;
@@ -101,6 +106,7 @@ authScene.on("text", async (ctx) => {
       await ctx.reply(
         "Что-то пошло не так. Почта или логин оказались неверными. Перепроверьте и введите данные снова"
       );
+      console.error("LOOLLLLLL")
       WaitForEmail.create({
         id: ctx.from.id,
       });
