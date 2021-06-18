@@ -74,6 +74,6 @@ profileScene.action("ВыйтиИзАккаунта", async (ctx) => {
 //   ctx.reply("amogus")
 // });
 
-profileScene.leave((ctx) => ctx.reply("exiting profile scene"));
+// profileScene.leave((ctx) => ctx.reply("exiting profile scene"));
 
 export { profileScene };

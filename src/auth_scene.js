@@ -31,7 +31,7 @@ authScene.enter(async (ctx) => {
   }
 });
 
-authScene.leave((ctx) => ctx.reply("exiting auth scene"));
+// authScene.leave((ctx) => ctx.reply("exiting auth scene"));
 authScene.on("text", async (ctx) => {
   const id = ctx.from.id;
 
