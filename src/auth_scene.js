@@ -29,7 +29,6 @@ authScene.enter(async (ctx) => {
     await ctx.reply("Вы уже вошли", Markup.removeKeyboard());
     ctx.scene.enter("menu");
   }
-  await ctx.reply("вышел из эжнтеы")
 });
 
 authScene.leave((ctx) => ctx.reply("exiting auth scene"));

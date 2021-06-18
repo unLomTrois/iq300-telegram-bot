@@ -50,8 +50,6 @@ profileScene.action("Меню", async (ctx) => {
 profileScene.action("ВыйтиИзАккаунта", async (ctx) => {
   const access_token = await AccessToken.findByPk(ctx.from.id);
 
-  console.error("ВыйтиИзАккаунта", access_token)
-
   ctx.editMessageReplyMarkup();
 
   if (access_token !== null) {
