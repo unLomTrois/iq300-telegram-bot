@@ -12,7 +12,7 @@ import {
 
 const authScene = new Scenes.BaseScene("auth");
 authScene.enter(async (ctx) => {
-  const id = ctx.from.id;
+  const id = parseInt(ctx.from.id);
 
   const access_token = await AccessToken.findByPk(id);
 
@@ -29,7 +29,7 @@ authScene.enter(async (ctx) => {
 
 // authScene.leave((ctx) => ctx.reply("exiting auth scene"));
 authScene.on("text", async (ctx) => {
-  const id = ctx.from.id;
+  const id = parseInt(ctx.from.id);
 
   const access_token = await AccessToken.findByPk(id);
   const has_access_token = access_token !== null;
