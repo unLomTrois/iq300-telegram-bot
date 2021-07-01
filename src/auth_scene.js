@@ -41,6 +41,8 @@ authScene.on("text", async (ctx) => {
   const wait_for_email = await WaitForEmail.findByPk(id);
   const wait_for_password = await WaitForPassword.findByPk(id);
 
+  console.log(ctx.message.text)
+
   // ожидание ввода почты
   if (
     !has_access_token &&
@@ -52,7 +54,7 @@ authScene.on("text", async (ctx) => {
 
     const email = ctx.message.text;
 
-    ctx.deleteMessage(ctx.message.message_id);
+    await ctx.deleteMessage(ctx.message.message_id);
 
     AuthTokenEmail.create({
       id,
@@ -61,11 +63,9 @@ authScene.on("text", async (ctx) => {
     WaitForPassword.create({
       id,
     });
-    ctx.reply("Введите пароль");
-  }
-
-  // ожидание ввода пароля
-  if (
+    await ctx.reply("Введите пароль");
+  }  // ожидание ввода пароля
+  else if (
     !has_access_token &&
     wait_for_password !== null &&
     auth_token_email !== null
@@ -109,6 +109,14 @@ authScene.on("text", async (ctx) => {
       WaitForEmail.create({
         id: ctx.from.id,
       });
+    }
+  }
+  else {
+    if (wait_for_email !== null) {
+      await ctx.reply("Введите почту", Markup.removeKeyboard());
+    } 
+    if (wait_for_password !== null) {
+      await ctx.reply("Введите пароль", Markup.removeKeyboard());
     }
   }
 });

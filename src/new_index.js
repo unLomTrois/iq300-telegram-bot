@@ -54,6 +54,8 @@ bot.hears("Войти", (ctx) => {
 bot.on("message", async (ctx) => {
   const id = ctx.from.id
 
+  console.log(ctx.message.text)
+
   const access_token = await AccessToken.findByPk(id);
 
   if (access_token !== null) {
