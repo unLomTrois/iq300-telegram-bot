@@ -24,7 +24,7 @@ notificationsScene.enter(async (ctx) => {
     }
   ).then((res) => res.json());
 
-  if (notifications.length > 0) {
+  if (notifications?.length && notifications?.length > 0) {
     await ctx.reply(
       `У Вас ${notifications.length} новых уведомлений`,
       Markup.removeKeyboard()
