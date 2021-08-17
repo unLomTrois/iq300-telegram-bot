@@ -22,10 +22,6 @@ menuScene.hears("👤 Профиль", (ctx) => {
   ctx.scene.enter("profile");
 });
 
-// menuScene.on("message", (ctx) => {
-//   ctx.reply("amogus")
-// });
-
 // menuScene.leave((ctx) => ctx.reply("exiting menu scene"));
 
 export { menuScene };

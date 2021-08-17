@@ -105,6 +105,7 @@ authScene.on("text", async (ctx) => {
       await ctx.reply(
         "Что-то пошло не так. Почта или логин оказались неверными. Перепроверьте и введите данные снова"
       );
+      await ctx.reply("Введите почту", Markup.removeKeyboard());
       console.error("LOOLLLLLL")
       WaitForEmail.create({
         id: ctx.from.id,
